@@ -1,0 +1,9 @@
+{
+  "name": "delilah-website",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm --prefix server ci && npm --prefix app ci && npm --prefix server run db:generate && npm --prefix app run build && npm --prefix server run build",
+    "start": "cd server && npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/index.js"
+  }
+}

@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SiteConfig {
+  id           String   @id @default(uuid())
+  key          String   @unique
+  value        String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("site_config")
+}
+
+model Media {
+  id           String    @id @default(uuid())
+  type         MediaType
+  title        String
+  description  String?
+  uploaderName String    @map("uploader_name")
+  originalName String    @map("original_name")
+  storagePath  String    @map("storage_path")
+  thumbnailPath String?  @map("thumbnail_path")
+  mimeType     String    @map("mime_type")
+  size         Int       // bytes
+  width        Int?
+  height       Int?
+  duration     Int?      // seconds, for videos
+  comments     Comment[]
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([type, createdAt])
+  @@map("media")
+}
+
+model Story {
+  id           String    @id @default(uuid())
+  title        String
+  category     String
+  content      String
+  authorName   String    @map("author_name")
+  comments     Comment[]
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([category, createdAt])
+  @@map("stories")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  name      String
+  text      String
+  isDelilah Boolean  @default(false) @map("is_delilah")
+  mediaId   String?  @map("media_id")
+  media     Media?   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  storyId   String?  @map("story_id")
+  story     Story?   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([mediaId])
+  @@index([storyId])
+  @@map("comments")
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}

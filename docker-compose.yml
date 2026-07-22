@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: delilah-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: delilah
+      POSTGRES_PASSWORD: delilah_password
+      POSTGRES_DB: delilah_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U delilah -d delilah_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Optional: run the backend inside Docker for production-like deployments.
+  # For local development, running `npm run dev` directly is usually faster.
+  server:
+    build:
+      context: ./server
+    container_name: delilah-server
+    restart: unless-stopped
+    env_file:
+      - ./server/.env
+    environment:
+      DATABASE_URL: postgresql://delilah:delilah_password@postgres:5432/delilah_db?schema=public
+    ports:
+      - "3001:3001"
+    volumes:
+      - delilah_uploads:/var/lib/delilah/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  delilah_uploads:
